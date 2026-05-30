@@ -93,7 +93,7 @@ export default async function OrganizerManageEventsPage() {
         </div>
       ) : (
         <div className="card py-16 text-center">
-          <p className="text-muted">You haven&apos;t created any events yet.</p>
+          <p className="text-muted">You havent created any events yet.</p>
           <Link href="/organizer/events/new" className="btn-primary mt-4 inline-flex items-center gap-2">
             <Plus className="h-4 w-4" /> Create your first event
           </Link>
