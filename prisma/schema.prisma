@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  PARTICIPANT
+  ORGANIZER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  PENDING_APPROVAL
+  SUSPENDED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
+enum NotificationType {
+  REGISTRATION_CONFIRMATION
+  EVENT_REMINDER
+  EVENT_UPDATE
+  ATTENDANCE_CONFIRMATION
+  ORGANIZER_APPROVAL
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  phone         String?
+  role          UserRole       @default(PARTICIPANT)
+  status        AccountStatus  @default(ACTIVE)
+  organizationId String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  organization  Organization?  @relation(fields: [organizationId], references: [id])
+  organizedEvents Event[]      @relation("EventOrganizer")
+  registrations Registration[]
+  waitlists     Waitlist[]
+  attendance    Attendance[]
+  notifications Notification[]
+  markedAttendance Attendance[] @relation("AttendanceMarker")
+}
+
+model Organization {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String?
+  approved    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  users       User[]
+  events      Event[]
+}
+
+model Category {
+  id     String  @id @default(cuid())
+  name   String
+  slug   String  @unique
+  events Event[]
+}
+
+model Event {
+  id              String         @id @default(cuid())
+  title           String
+  description     String
+  categoryId      String
+  date            DateTime
+  registrationDeadline DateTime?
+  location        String
+  venue           String?
+  imageUrl        String
+  totalSeats      Int
+  registeredCount Int            @default(0)
+  createdBy       String
+  organizationId  String?
+  status          EventStatus     @default(PUBLISHED)
+  contactEmail    String?
+  contactPhone    String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  category        Category       @relation(fields: [categoryId], references: [id])
+  organizer       User           @relation("EventOrganizer", fields: [createdBy], references: [id])
+  organization    Organization?  @relation(fields: [organizationId], references: [id])
+  registrations   Registration[]
+  waitlists       Waitlist[]
+  attendance      Attendance[]
+  notifications   Notification[]
+}
+
+model Registration {
+  id           String      @id @default(cuid())
+  userId       String
+  eventId      String
+  ticketCode   String      @unique @default(cuid())
+  registeredAt DateTime    @default(now())
+  ticket        Ticket?
+  user         User        @relation(fields: [userId], references: [id])
+  event        Event       @relation(fields: [eventId], references: [id])
+  attendance   Attendance?
+
+  @@unique([userId, eventId])
+}
+
+model Ticket {
+  id             String       @id @default(cuid())
+  registrationId String       @unique
+  code           String       @unique
+  qrPayload      String
+  issuedAt       DateTime     @default(now())
+  registration   Registration @relation(fields: [registrationId], references: [id])
+}
+
+model Waitlist {
+  id         String    @id @default(cuid())
+  userId     String
+  eventId    String
+  position   Int
+  status     String    @default("waiting")
+  joinedAt   DateTime  @default(now())
+  promotedAt DateTime?
+  user       User      @relation(fields: [userId], references: [id])
+  event      Event     @relation(fields: [eventId], references: [id])
+
+  @@unique([userId, eventId])
+  @@index([eventId, position])
+}
+
+model Attendance {
+  id             String       @id @default(cuid())
+  userId         String
+  eventId        String
+  registrationId String       @unique
+  markedAt       DateTime     @default(now())
+  markedBy       String
+  user           User         @relation(fields: [userId], references: [id])
+  event          Event        @relation(fields: [eventId], references: [id])
+  registration   Registration @relation(fields: [registrationId], references: [id])
+  marker         User         @relation("AttendanceMarker", fields: [markedBy], references: [id])
+
+  @@unique([userId, eventId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  eventId   String?
+  type      NotificationType
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id])
+  event     Event?           @relation(fields: [eventId], references: [id])
+
+  @@index([userId, readAt])
+}

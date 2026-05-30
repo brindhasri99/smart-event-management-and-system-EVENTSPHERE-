@@ -1,0 +1,5 @@
+
+> eventsphere-ai@0.1.0 dev
+> next dev --port 3000 --hostname 0.0.0.0
+
+[?25h

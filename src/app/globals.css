@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #0F172A;
+  --accent: #6366F1;
+  --surface: #F8FAFC;
+  --card: #FFFFFF;
+  --border: #E2E8F0;
+  --muted: #64748B;
+}
+
+.dark {
+  --primary: #F1F5F9;
+  --surface: #0F172A;
+  --card: #1E293B;
+  --border: #334155;
+  --muted: #94A3B8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--surface);
+  color: var(--primary);
+}
+
+.dot-grid {
+  background-image: radial-gradient(#E2E8F0 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.dark .dot-grid {
+  background-image: radial-gradient(#334155 1px, transparent 1px);
+}
+
+.card {
+  @apply rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md;
+}
+
+.btn-primary {
+  @apply rounded-lg bg-[#6366F1] px-4 py-2 font-medium text-white transition-colors hover:bg-[#4F46E5];
+}
+
+.btn-outline {
+  @apply rounded-lg border border-border px-4 py-2 font-medium transition-colors hover:bg-[#F8FAFC] dark:hover:bg-slate-800;
+}
+
+.label {
+  @apply text-xs font-medium uppercase tracking-wider text-muted;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .ticket-card,
+  .ticket-card * {
+    visibility: visible;
+  }
+
+  .ticket-card {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    box-shadow: none !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+}
